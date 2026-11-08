@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Slovíčka</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#f4f5f9;--card:#fff;--text:#1c1e26;--muted:#6b7080;--line:#e2e4ec;
+  --pri:#4f46e5;--pri-t:#fff;--new:#2563eb;--learn:#dc2626;--rev:#16a34a;
+  --g1:#dc2626;--g2:#d97706;--g3:#16a34a;--g4:#2563eb;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#12131a;--card:#1c1e29;--text:#eceef5;--muted:#9096aa;--line:#2c2f3d;--pri:#818cf8;--pri-t:#12131a;
+    --new:#60a5fa;--learn:#f87171;--rev:#4ade80;--g1:#f87171;--g2:#fbbf24;--g3:#4ade80;--g4:#60a5fa}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
+#app{max-width:640px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
+a{color:inherit;text-decoration:none}
+h1{font-size:1.4rem;margin:0}
+h2{font-size:1.05rem;margin:24px 0 8px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;min-height:44px}
+header h1{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header h1.left{text-align:left}
+.icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:0;background:transparent;color:inherit;border-radius:12px;cursor:pointer}
+.icon:active{background:var(--line)}
+.muted{color:var(--muted);font-size:.9rem}
+.center{text-align:center}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.deck{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.deck-main{flex:1;min-width:0}
+.deck-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnt{display:flex;gap:8px;font-weight:700;font-variant-numeric:tabular-nums}
+.cnt.center{justify-content:center;margin-bottom:14px}
+.cnt .n{color:var(--new)}.cnt .l{color:var(--learn)}.cnt .r{color:var(--rev)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:12px;border:0;background:var(--pri);color:var(--pri-t);font:inherit;font-weight:600;cursor:pointer}
+.btn:active{opacity:.8}
+.btn.dis{opacity:.35;pointer-events:none}
+.btn.sec{background:var(--line);color:var(--text)}
+.btn.danger{background:transparent;color:var(--learn);border:1px solid var(--line)}
+.btn.big{padding:16px;font-size:1.1rem}
+.btn.full{width:100%}
+.btn.small{padding:6px 10px;font-size:.85rem;border-radius:10px}
+input[type=text],input[type=number],textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+textarea{min-height:110px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:0}
+form .row{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+form .row .grow{flex:1}
+label.chk{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}
+.crow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.crow:last-child{border-bottom:0}
+.ctext{flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.ctext .b{color:var(--muted)}
+.cact{display:flex;gap:6px;flex-shrink:0}
+.tag{font-size:.75rem;color:var(--muted)}
+details{margin-top:8px}
+summary{cursor:pointer;font-weight:600;padding:6px 0}
+/* studium */
+.scene{perspective:1200px;margin-bottom:16px;cursor:pointer}
+.flipper{position:relative;height:min(52vh,340px);min-height:220px;transition:transform .45s;transform-style:preserve-3d}
+.flipper.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;overflow:auto;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.face .in{margin:auto;text-align:center;font-size:1.6rem;font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+.face.back{transform:rotateY(180deg)}
+.face.back .in small{display:block;font-size:.9rem;font-weight:400;color:var(--muted);margin-bottom:10px}
+.face .hint{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:.75rem;color:var(--muted)}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.g{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px 4px;font:inherit;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.g:active{transform:scale(.97)}
+.g small{color:var(--muted);font-size:.75rem}
+.g b{font-size:.95rem}
+.g1 b{color:var(--g1)}.g2 b{color:var(--g2)}.g3 b{color:var(--g3)}.g4 b{color:var(--g4)}
+.done{text-align:center;padding:40px 8px}
+.done .emoji{font-size:3rem}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;z-index:10}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+'use strict';
+
+/* ===== Pomocné ===== */
+const KEY = 'slovnik.v1', DAY = 864e5, MIN = 6e4;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pad = n => String(n).padStart(2, '0');
+const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const dayStart = off => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + off).getTime(); };
+
+let tt;
+function toast(m) {
+  const t = $('#toast'); t.textContent = m; t.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ===== Data ===== */
+let db = load();
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && Array.isArray(d.decks) && Array.isArray(d.cards)) {
+      d.settings = Object.assign({ newPerDay: 20 }, d.settings);
+      d.log = d.log || {};
+      return d;
+    }
+  } catch (e) {}
+  return { decks: [], cards: [], settings: { newPerDay: 20 }, log: {} };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch (e) { toast('Data se nepodařilo uložit!'); }
+}
+const deckById = id => db.decks.find(d => d.id === id);
+const mkCard = (deck, front, back) => ({ id: uid(), deck, front, back, state: 'new', due: 0, ivl: 0, ease: 2.5, reps: 0, lapses: 0 });
+
+/* ===== Plánování opakování (zjednodušené SM-2 / Anki) =====
+   state: new -> learn (krátké kroky v minutách) -> review (intervaly ve dnech)
+   známky: 1 Znovu, 2 Těžké, 3 Dobré, 4 Snadné */
+function sched(c, g) {
+  const n = Object.assign({}, c);
+  const now = Date.now();
+  n.reps = c.reps + 1;
+  if (c.state === 'new' || c.state === 'learn') {
+    if (g === 1) { n.state = 'learn'; n.due = now + 1 * MIN; }
+    else if (g === 2) { n.state = 'learn'; n.due = now + 6 * MIN; }
+    else if (g === 3) { n.state = 'review'; n.ivl = c.ivl > 0 ? c.ivl : 1; n.due = dayStart(n.ivl); }
+    else { n.state = 'review'; n.ivl = c.ivl > 0 ? Math.round(c.ivl * 1.5) + 1 : 4; n.due = dayStart(n.ivl); }
+    return n;
+  }
+  // review
+  if (g === 1) {
+    n.lapses = c.lapses + 1;
+    n.ease = Math.max(1.3, c.ease - 0.2);
+    n.state = 'learn';
+    n.ivl = Math.max(1, Math.round(c.ivl * 0.5));
+    n.due = now + 10 * MIN;
+    return n;
+  }
+  if (g === 2) { n.ivl = Math.max(c.ivl + 1, Math.round(c.ivl * 1.2)); n.ease = Math.max(1.3, c.ease - 0.15); }
+  else if (g === 3) { n.ivl = Math.max(c.ivl + 1, Math.round(c.ivl * c.ease)); }
+  else { n.ivl = Math.max(c.ivl + 2, Math.round(c.ivl * c.ease * 1.3)); n.ease = c.ease + 0.15; }
+  n.due = dayStart(n.ivl);
+  return n;
+}
+function fmtIvl(d) {
+  if (d < 30) return d + ' d';
+  if (d < 365) return (d / 30.4).toFixed(1).replace('.', ',') + ' měs';
+  return (d / 365).toFixed(1).replace('.', ',') + ' r';
+}
+function label(c, g) {
+  const n = sched(c, g);
+  return n.state === 'learn' ? Math.max(1, Math.round((n.due - Date.now()) / MIN)) + ' min' : fmtIvl(n.ivl);
+}
+function counts(deckId) {
+  const now = Date.now();
+  let n = 0, l = 0, r = 0;
+  for (const c of db.cards) {
+    if (c.deck !== deckId) continue;
+    if (c.state === 'new') n++;
+    else if (c.state === 'learn') { if (c.due <= now) l++; }
+    else if (c.due <= now) r++;
+  }
+  const left = Math.max(0, db.settings.newPerDay - (db.log[todayKey() + '|' + deckId] || 0));
+  return { n: Math.min(n, left), l, r };
+}
+function nextCard(deckId) {
+  const now = Date.now();
+  const cs = db.cards.filter(c => c.deck === deckId);
+  let pick = cs.filter(c => c.state === 'learn' && c.due <= now).sort((a, b) => a.due - b.due)[0];
+  if (!pick) pick = cs.filter(c => c.state === 'review' && c.due <= now).sort((a, b) => a.due - b.due)[0];
+  if (!pick && counts(deckId).n > 0) pick = cs.find(c => c.state === 'new');
+  return pick || null;
+}
+function dueText(c) {
+  if (c.state === 'new') return 'nová';
+  if (c.state === 'learn') return 'učí se';
+  const days = Math.ceil((c.due - Date.now()) / DAY);
+  return c.due <= Date.now() ? 'k opakování' : 'za ' + days + ' d';
+}
+
+/* ===== Stav UI ===== */
+let study = null;      // { deckId, card, flipped, undo }
+let editId = null;     // upravovaná kartička
+let revDefault = false;
+const route = () => (location.hash.slice(1) || '/').split('/').filter(Boolean);
+
+/* ===== Pohledy ===== */
+function viewHome() {
+  const rows = db.decks.map(d => {
+    const c = counts(d.id);
+    const total = db.cards.filter(x => x.deck === d.id).length;
+    return `<div class="deck">
+      <a class="deck-main" href="#/deck/${d.id}">
+        <div class="deck-name">${esc(d.name)}</div>
+        <div class="muted">${total} karet</div>
+      </a>
+      <div class="cnt"><span class="n" title="Nové">${c.n}</span><span class="l" title="Učí se">${c.l}</span><span class="r" title="K opakování">${c.r}</span></div>
+      <a class="btn ${c.n + c.l + c.r ? '' : 'dis'}" href="#/study/${d.id}">Učit</a>
+    </div>`;
+  }).join('');
+  return `<header><h1 class="left">Slovíčka</h1><a class="icon" href="#/settings" aria-label="Nastavení">⚙️</a></header>
+    ${rows || '<p class="muted center" style="padding:24px 0">Zatím nemáš žádný seznam. Vytvoř první níže.</p>'}
+    <form class="box" data-form="addDeck">
+      <input type="text" name="dname" placeholder="Nový seznam (např. Angličtina – lekce 1)" maxlength="80" required autocomplete="off">
+      <div class="row"><button class="btn grow">Vytvořit seznam</button></div>
+    </form>
+    <p class="muted center">Barvy čísel: <span class="cnt" style="display:inline-flex"><span class="n">nové</span><span class="l">učí se</span><span class="r">opakování</span></span></p>`;
+}
+
+function viewDeck(d) {
+  const cs = db.cards.filter(c => c.deck === d.id);
+  const c = counts(d.id);
+  const list = cs.map(x => {
+    if (x.id === editId) {
+      return `<div class="crow"><div class="ctext">
+        <input type="text" id="e-front" value="${esc(x.front)}" placeholder="Přední strana">
+        <div style="height:6px"></div>
+        <input type="text" id="e-back" value="${esc(x.back)}" placeholder="Zadní strana">
+        </div><div class="cact">
+        <button class="btn small" data-act="saveCard" data-id="${x.id}">Uložit</button>
+        <button class="btn small sec" data-act="cancelEdit">✕</button></div></div>`;
+    }
+    return `<div class="crow"><div class="ctext"><div>${esc(x.front)}</div><div class="b">${esc(x.back)}</div><div class="tag">${dueText(x)}</div></div>
+      <div class="cact"><button class="btn small sec" data-act="editCard" data-id="${x.id}" aria-label="Upravit">✎</button>
+      <button class="btn small danger" data-act="delCard" data-id="${x.id}" aria-label="Smazat">🗑</button></div></div>`;
+  }).join('');
+  return `<header><a class="icon" href="#/" aria-label="Zpět">←</a><h1>${esc(d.name)}</h1><button class="icon" data-act="renameDeck" aria-label="Přejmenovat">✎</button></header>
+    <div class="box center">
+      <div class="cnt center"><span class="n">${c.n}</span><span class="l">${c.l}</span><span class="r">${c.r}</span></div>
+      <a class="btn big full ${c.n + c.l + c.r ? '' : 'dis'}" href="#/study/${d.id}">Učit se</a>
+    </div>
+    <h2>Přidat kartičku</h2>
+    <form class="box" data-form="addCard">
+      <input type="text" id="f-front" name="front" placeholder="Přední strana (např. dog)" required autocomplete="off">
+      <div style="height:8px"></div>
+      <input type="text" name="back" placeholder="Zadní strana (např. pes)" required autocomplete="off">
+      <div class="row">
+        <label class="chk"><input type="checkbox" name="rev" ${revDefault ? 'checked' : ''}> přidat i opačný směr</label>
+        <button class="btn grow" style="margin-left:auto;flex:0 0 auto">Přidat</button>
+      </div>
+      <details>
+        <summary>Hromadné vložení</summary>
+        <p class="muted" style="margin:4px 0 8px">Jedna kartička na řádek, strany odděl středníkem, tabulátorem nebo „ - “.</p>
+        <textarea name="bulk" placeholder="dog;pes&#10;cat;kočka&#10;house - dům"></textarea>
+        <div class="row"><button class="btn sec" name="bulkBtn" value="1">Vložit vše</button></div>
+      </details>
+    </form>
+    <h2>Kartičky (${cs.length})</h2>
+    <div class="box">${list || '<p class="muted center">Seznam je prázdný.</p>'}</div>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn danger small" data-act="resetDeck">Resetovat pokrok</button>
+      <button class="btn danger small" data-act="delDeck">Smazat seznam</button>
+    </div>`;
+}
+
+function controlsHtml() {
+  const c = study.card;
+  if (!study.flipped) return `<button class="btn big full" data-act="flip">Otočit</button>`;
+  const names = ['Znovu', 'Těžké', 'Dobré', 'Snadné'];
+  return `<div class="grades">${[1, 2, 3, 4].map(g =>
+    `<button class="g g${g}" data-act="grade" data-g="${g}"><small>${label(c, g)}</small><b>${names[g - 1]}</b></button>`).join('')}</div>`;
+}
+
+function doneHtml(d) {
+  const now = Date.now();
+  const nxt = db.cards.filter(c => c.deck === d.id && c.state !== 'new').map(c => c.due).filter(t => t > now).sort((a, b) => a - b)[0];
+  let info = '';
+  if (nxt) {
+    const m = Math.round((nxt - now) / MIN);
+    info = m < 60 ? `Další kartička za ${m} min.` : `Další opakování: ${new Date(nxt).toLocaleDateString('cs-CZ')}.`;
+  }
+  const waiting = db.cards.filter(c => c.deck === d.id && c.state === 'new').length;
+  const limitNote = waiting > 0 && counts(d.id).n === 0
+    ? `<p class="muted">Zbývá ${waiting} nových karet – dnešní limit nových karet je vyčerpaný (jde změnit v nastavení).</p>` : '';
+  return `<div class="done"><div class="emoji">🎉</div><h2>Na dnes hotovo</h2><p class="muted">${info}</p>${limitNote}
+    <div class="row" style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+      <button class="btn sec" data-act="refresh">Obnovit</button>
+      <a class="btn" href="#/">Domů</a></div></div>`;
+}
+
+function viewStudy(d) {
+  if (!study || study.deckId !== d.id) study = { deckId: d.id, card: nextCard(d.id), flipped: false, undo: null };
+  const c = study.card;
+  const k = counts(d.id);
+  const head = `<header><a class="icon" href="#/deck/${d.id}" aria-label="Zpět">←</a><h1>${esc(d.name)}</h1>
+    ${study.undo ? '<button class="icon" data-act="undo" aria-label="Zpět o krok" title="Vrátit poslední hodnocení">↶</button>' : '<span class="icon"></span>'}</header>
+    <div class="cnt center"><span class="n">${k.n}</span><span class="l">${k.l}</span><span class="r">${k.r}</span></div>`;
+  if (!c) return head + doneHtml(d);
+  return head + `<div class="scene" data-act="flip"><div class="flipper" id="flipper">
+      <div class="face front"><div class="in">${esc(c.front)}</div><div class="hint">klepni pro otočení</div></div>
+      <div class="face back"><div class="in"><small>${esc(c.front)}</small>${esc(c.back)}</div></div>
+    </div></div><div id="controls">${controlsHtml()}</div>
+    <p class="muted center" style="margin-top:14px">Klávesy: mezerník = otočit / Dobré, 1–4 = hodnocení, Z = zpět</p>`;
+}
+
+function viewSettings() {
+  return `<header><a class="icon" href="#/" aria-label="Zpět">←</a><h1>Nastavení</h1><span class="icon"></span></header>
+    <form class="box" data-form="settings">
+      <label for="npd"><b>Nových karet za den (na seznam)</b></label>
+      <div class="row"><input type="number" id="npd" name="newPerDay" min="0" max="999" value="${db.settings.newPerDay}" class="grow" style="width:auto">
+      <button class="btn">Uložit</button></div>
+    </form>
+    <h2>Záloha dat</h2>
+    <div class="box">
+      <p class="muted" style="margin-top:0">Data jsou uložená jen v tomto prohlížeči v tomto zařízení. Záloha do souboru slouží i k přenosu mezi telefonem a počítačem.</p>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" data-act="export">Exportovat</button>
+        <button class="btn sec" data-act="import">Importovat</button>
+      </div>
+    </div>
+    <button class="btn danger small" data-act="wipe">Smazat všechna data</button>`;
+}
+
+function render() {
+  const p = route();
+  const app = $('#app');
+  let html;
+  const d = p[1] ? deckById(p[1]) : null;
+  if (p[0] === 'deck' && d) html = viewDeck(d);
+  else if (p[0] === 'study' && d) html = viewStudy(d);
+  else if (p[0] === 'settings') html = viewSettings();
+  else html = viewHome();
+  app.innerHTML = html;
+}
+
+/* ===== Akce ===== */
+const curDeckId = () => route()[1];
+
+function doGrade(g) {
+  if (!study || !study.card || !study.flipped) return;
+  const c = study.card;
+  const before = Object.assign({}, c);
+  const wasNew = c.state === 'new';
+  const k = todayKey() + '|' + c.deck;
+  Object.assign(c, sched(c, g));
+  if (wasNew) db.log[k] = (db.log[k] || 0) + 1;
+  study.undo = { before, wasNew, k };
+  save();
+  study.card = nextCard(c.deck);
+  study.flipped = false;
+  render();
+}
+function doUndo() {
+  if (!study || !study.undo) return;
+  const u = study.undo;
+  const c = db.cards.find(x => x.id === u.before.id);
+  if (!c) return;
+  Object.assign(c, u.before);
+  if (u.wasNew) db.log[u.k] = Math.max(0, (db.log[u.k] || 1) - 1);
+  study.undo = null;
+  study.card = c;
+  study.flipped = false;
+  save();
+  render();
+}
+function doFlip() {
+  if (!study || !study.card || study.flipped) return;
+  study.flipped = true;
+  const f = $('#flipper'); if (f) f.classList.add('flipped');
+  const c = $('#controls'); if (c) c.innerHTML = controlsHtml();
+}
+
+const actions = {
+  flip: doFlip,
+  grade: t => doGrade(Number(t.dataset.g)),
+  undo: doUndo,
+  refresh: () => { if (study) study.card = nextCard(study.deckId); render(); },
+  editCard: t => { editId = t.dataset.id; render(); },
+  cancelEdit: () => { editId = null; render(); },
+  saveCard: t => {
+    const c = db.cards.find(x => x.id === t.dataset.id);
+    const f = $('#e-front').value.trim(), b = $('#e-back').value.trim();
+    if (!c || !f || !b) return toast('Obě strany musí být vyplněné');
+    c.front = f; c.back = b; editId = null; save(); render();
+  },
+  delCard: t => {
+    if (!confirm('Smazat tuto kartičku?')) return;
+    db.cards = db.cards.filter(x => x.id !== t.dataset.id); save(); render();
+  },
+  renameDeck: () => {
+    const d = deckById(curDeckId()); if (!d) return;
+    const n = prompt('Nový název seznamu:', d.name);
+    if (n && n.trim()) { d.name = n.trim().slice(0, 80); save(); render(); }
+  },
+  delDeck: () => {
+    const d = deckById(curDeckId()); if (!d) return;
+    if (!confirm(`Smazat seznam „${d.name}“ včetně všech kartiček?`)) return;
+    db.decks = db.decks.filter(x => x.id !== d.id);
+    db.cards = db.cards.filter(x => x.deck !== d.id);
+    save(); study = null; location.hash = '#/';
+  },
+  resetDeck: () => {
+    const id = curDeckId();
+    if (!confirm('Vrátit všechny kartičky v seznamu do stavu „nová“? Pokrok se ztratí.')) return;
+    db.cards.filter(c => c.deck === id).forEach(c => Object.assign(c, { state: 'new', due: 0, ivl: 0, ease: 2.5, reps: 0, lapses: 0 }));
+    study = null; save(); render(); toast('Pokrok resetován');
+  },
+  export: () => {
+    const b = new Blob([JSON.stringify(db, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = 'slovnik-zaloha-' + todayKey() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  },
+  import: () => $('#importFile').click(),
+  wipe: () => {
+    if (!confirm('Opravdu smazat všechny seznamy a kartičky? Nelze vrátit.')) return;
+    if (!confirm('Určitě? Zvaž nejdřív export zálohy.')) return;
+    db = { decks: [], cards: [], settings: { newPerDay: 20 }, log: {} };
+    study = null; save(); location.hash = '#/'; render();
+  }
+};
+
+function parseBulk(text) {
+  const out = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim(); if (!line) continue;
+    let i = line.indexOf('\t'), len = 1;
+    if (i < 0) { i = line.indexOf(';'); len = 1; }
+    if (i < 0) { i = line.indexOf(' - '); len = 3; }
+    if (i < 0) continue;
+    const f = line.slice(0, i).trim(), b = line.slice(i + len).trim();
+    if (f && b) out.push([f, b]);
+  }
+  return out;
+}
+
+const forms = {
+  addDeck: f => {
+    const name = f.elements['dname'].value.trim(); if (!name) return;
+    const d = { id: uid(), name, created: Date.now() };
+    db.decks.push(d); save();
+    location.hash = '#/deck/' + d.id;
+  },
+  addCard: (f, ev) => {
+    const id = curDeckId();
+    const rev = f.elements['rev'].checked;
+    revDefault = rev;
+    const bulkText = f.elements['bulk'].value.trim();
+    const isBulk = ev && ev.submitter && ev.submitter.name === 'bulkBtn';
+    if (isBulk) {
+      const pairs = parseBulk(bulkText);
+      if (!pairs.length) return toast('Nenašel jsem žádné platné řádky');
+      pairs.forEach(([a, b]) => { db.cards.push(mkCard(id, a, b)); if (rev) db.cards.push(mkCard(id, b, a)); });
+      save(); render(); toast('Přidáno karet: ' + pairs.length * (rev ? 2 : 1));
+      return;
+    }
+    const front = f.elements['front'].value.trim(), back = f.elements['back'].value.trim();
+    if (!front || !back) return;
+    db.cards.push(mkCard(id, front, back));
+    if (rev) db.cards.push(mkCard(id, back, front));
+    save(); render();
+    const el = $('#f-front'); if (el) el.focus();
+    toast('Kartička přidána');
+  },
+  settings: f => {
+    let n = parseInt(f.elements['newPerDay'].value, 10);
+    if (isNaN(n) || n < 0) n = 0; if (n > 999) n = 999;
+    db.settings.newPerDay = n; save(); toast('Uloženo');
+  }
+};
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (!t) return;
+  const h = actions[t.dataset.act];
+  if (h) h(t, e);
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-form]');
+  if (!f) return;
+  e.preventDefault();
+  const h = forms[f.dataset.form];
+  if (h) h(f, e);
+});
+document.addEventListener('keydown', e => {
+  if (route()[0] !== 'study' || !study) return;
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    if (!study.flipped) doFlip(); else doGrade(3);
+  } else if (/^[1-4]$/.test(e.key)) doGrade(Number(e.key));
+  else if (e.key === 'z' || e.key === 'Z') doUndo();
+});
+$('#importFile').addEventListener('change', e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d || !Array.isArray(d.decks) || !Array.isArray(d.cards)) throw new Error('bad');
+      if (!confirm(`Importovat ${d.decks.length} seznamů a ${d.cards.length} karet? Současná data budou nahrazena.`)) return;
+      d.settings = Object.assign({ newPerDay: 20 }, d.settings); d.log = d.log || {};
+      db = d; study = null; save(); render(); toast('Import hotový');
+    } catch (err) { toast('Soubor není platná záloha'); }
+  };
+  r.readAsText(file);
+});
+window.addEventListener('hashchange', () => { editId = null; if (route()[0] !== 'study') study = null; render(); });
+
+/* ===== Start ===== */
+render();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
